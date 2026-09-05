@@ -367,6 +367,33 @@ func evolve_to_next_stage() -> void:
 	save_active_pote()
 
 
+## 🔧 開発・デバッグ用: 任意の種族へ直接変身
+func set_species_direct(species_id: String) -> void:
+	var prev_species = current_species
+	current_species_id = species_id
+	current_species = PoteDatabase.get_species(species_id)
+	if current_species == null:
+		return
+
+	match current_species.stage:
+		PoteEnums.GrowthStage.EGG: ticks_to_next_evolution = 50
+		PoteEnums.GrowthStage.BABY: ticks_to_next_evolution = 60
+		PoteEnums.GrowthStage.CHILD: ticks_to_next_evolution = 80
+		PoteEnums.GrowthStage.ADULT: ticks_to_next_evolution = 120
+		PoteEnums.GrowthStage.MASTER: ticks_to_next_evolution = 999999
+		_: ticks_to_next_evolution = 50
+
+	current_stage_ticks = 0
+	_is_evolving = false
+	mood = PoteEnums.BuddyMood.HYPED
+
+	stage_evolved.emit(prev_species, current_species)
+	var evolve_line = current_species.dialogue_evolve if (current_species and not current_species.dialogue_evolve.is_empty()) else "デバッグ変身完了だぜ！"
+	buddy_dialogue_emitted.emit(buddy_name, evolve_line, mood)
+	_emit_stats()
+	save_active_pote()
+
+
 func _emit_stats() -> void:
 	stats_updated.emit(belly_fuel, toilet_urgency, stamina, buddy_sync)
 

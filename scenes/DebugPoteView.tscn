@@ -619,13 +619,74 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 13
 text = "⚔️ 実戦勝利+3 (勝率UP)"
 
-[node name="BtnDbgResetEgg" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+[node name="BtnDbgChangeSpecies" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 13
-text = "🥚 タマゴへ初期化"
+text = "🔄 種族を自由変更 (全20種)"
+
+[node name="BtnDbgRandomSpecies" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🎲 ランダム変身"
+
+[node name="SpeciesSelectModalPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="SpeciesSelectModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="SpeciesSelectModalPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="SpeciesSelectModalPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="SpeciesSelectModalPanel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
+text = "🔄 ポテ種族 自由変身 (デバッグ)"
+
+[node name="BtnCloseSpeciesSelect" type="Button" parent="SpeciesSelectModalPanel/Margin/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "❌ 閉じる"
+
+[node name="ScrollSpecies" type="ScrollContainer" parent="SpeciesSelectModalPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SpeciesListContainer" type="VBoxContainer" parent="SpeciesSelectModalPanel/Margin/VBox/ScrollSpecies"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
 [connection signal="pressed" from="Margin/VBox/Header/BtnOpenCryo" to="." method="_on_btn_open_cryo_pressed"]
 [connection signal="pressed" from="Margin/VBox/ActionButtons/BtnFeedMenu" to="." method="_on_btn_feed_menu_pressed"]
@@ -649,3 +710,6 @@ text = "🥚 タマゴへ初期化"
 [connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgTriggerToilet" to="." method="_on_btn_dbg_trigger_toilet_pressed"]
 [connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgAddWins" to="." method="_on_btn_dbg_add_wins_pressed"]
 [connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgResetEgg" to="." method="_on_btn_dbg_reset_egg_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgChangeSpecies" to="." method="_on_btn_dbg_change_species_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgRandomSpecies" to="." method="_on_btn_dbg_random_species_pressed"]
+[connection signal="pressed" from="SpeciesSelectModalPanel/Margin/VBox/Header/BtnCloseSpeciesSelect" to="." method="_on_btn_close_species_select_pressed"]

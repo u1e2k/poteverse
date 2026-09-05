@@ -31,6 +31,25 @@ func get_species(species_id: String) -> PoteSpeciesData:
 	return species_dict.get("baby_drak", null)
 
 
+func get_all_unique_species() -> Array[PoteSpeciesData]:
+	if species_dict.is_empty():
+		_init_species()
+	var list: Array[PoteSpeciesData] = []
+	var stage_order = [
+		PoteEnums.GrowthStage.EGG,
+		PoteEnums.GrowthStage.BABY,
+		PoteEnums.GrowthStage.CHILD,
+		PoteEnums.GrowthStage.ADULT,
+		PoteEnums.GrowthStage.MASTER
+	]
+	for st in stage_order:
+		for sp_id in species_dict:
+			var sp = species_dict[sp_id]
+			if sp.stage == st and not list.has(sp):
+				list.append(sp)
+	return list
+
+
 func _init_species() -> void:
 	species_dict.clear()
 

@@ -54,7 +54,11 @@ extends Control
 @onready var btn_dbg_full_heal: Button = %BtnDbgFullHeal
 @onready var btn_dbg_trigger_toilet: Button = %BtnDbgTriggerToilet
 @onready var btn_dbg_add_wins: Button = %BtnDbgAddWins
-@onready var btn_dbg_reset_egg: Button = %BtnDbgResetEgg
+@onready var btn_dbg_change_species: Button = %BtnDbgChangeSpecies
+@onready var btn_dbg_random_species: Button = %BtnDbgRandomSpecies
+@onready var species_select_modal_panel: PanelContainer = %SpeciesSelectModalPanel
+@onready var btn_close_species_select: Button = %BtnCloseSpeciesSelect
+@onready var species_list_container: VBoxContainer = %SpeciesListContainer
 
 var alert_timer: float = 0.0
 var _pending_freeze_slot_idx: int = -1
@@ -90,6 +94,8 @@ func _ready() -> void:
 	egg_select_modal_panel.visible = false
 	cryo_modal_panel.visible = false
 	debug_modal_panel.visible = false
+	if species_select_modal_panel:
+		species_select_modal_panel.visible = false
 
 	_setup_focus_navigation()
 	_update_ui_labels()
@@ -106,6 +112,9 @@ func _notification(what: int) -> void:
 
 
 func _handle_back_request() -> bool:
+	if species_select_modal_panel and species_select_modal_panel.visible:
+		_on_btn_close_species_select_pressed()
+		return true
 	if debug_modal_panel and debug_modal_panel.visible:
 		_on_btn_close_debug_pressed()
 		return true
@@ -142,7 +151,8 @@ func _setup_focus_navigation() -> void:
 		btn_training_action, btn_battle_action, btn_close_train,
 		btn_close_egg_select, btn_close_cryo, btn_freeze_current, btn_freeze_and_egg,
 		btn_close_debug, btn_dbg_skip50, btn_dbg_force_evolve, btn_dbg_full_heal,
-		btn_dbg_trigger_toilet, btn_dbg_add_wins, btn_dbg_reset_egg
+		btn_dbg_trigger_toilet, btn_dbg_add_wins, btn_dbg_change_species, btn_dbg_random_species,
+		btn_close_species_select
 	]
 	for b in all_static_buttons:
 		if b:
@@ -212,11 +222,14 @@ func _setup_focus_navigation() -> void:
 	btn_dbg_full_heal.focus_neighbor_bottom = btn_dbg_add_wins.get_path()
 	btn_dbg_trigger_toilet.focus_neighbor_top = btn_dbg_force_evolve.get_path()
 	btn_dbg_trigger_toilet.focus_neighbor_left = btn_dbg_full_heal.get_path()
-	btn_dbg_trigger_toilet.focus_neighbor_bottom = btn_dbg_reset_egg.get_path()
+	btn_dbg_trigger_toilet.focus_neighbor_bottom = btn_dbg_change_species.get_path()
 	btn_dbg_add_wins.focus_neighbor_top = btn_dbg_full_heal.get_path()
-	btn_dbg_add_wins.focus_neighbor_right = btn_dbg_reset_egg.get_path()
-	btn_dbg_reset_egg.focus_neighbor_top = btn_dbg_trigger_toilet.get_path()
-	btn_dbg_reset_egg.focus_neighbor_left = btn_dbg_add_wins.get_path()
+	btn_dbg_add_wins.focus_neighbor_right = btn_dbg_change_species.get_path()
+	btn_dbg_add_wins.focus_neighbor_bottom = btn_dbg_random_species.get_path()
+	btn_dbg_change_species.focus_neighbor_top = btn_dbg_trigger_toilet.get_path()
+	btn_dbg_change_species.focus_neighbor_left = btn_dbg_add_wins.get_path()
+	btn_dbg_change_species.focus_neighbor_bottom = btn_dbg_random_species.get_path()
+	btn_dbg_random_species.focus_neighbor_top = btn_dbg_add_wins.get_path()
 
 
 func _process(delta: float) -> void:
@@ -238,6 +251,7 @@ func _process(delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	var any_modal_open: bool = (
+		(species_select_modal_panel and species_select_modal_panel.visible) or
 		(debug_modal_panel and debug_modal_panel.visible) or
 		(feed_popup_panel and feed_popup_panel.visible) or
 		(train_popup_panel and train_popup_panel.visible) or
@@ -718,3 +732,88 @@ func _on_btn_dbg_add_wins_pressed() -> void:
 func _on_btn_dbg_reset_egg_pressed() -> void:
 	debug_modal_panel.visible = false
 	open_egg_selection()
+
+
+# ==============================================================================
+# 🔄 ポテ種族 自由選択・変更 (デバッグ用 全20種)
+# ==============================================================================
+func _on_btn_dbg_change_species_pressed() -> void:
+	_open_species_selection()
+
+
+func _open_species_selection() -> void:
+	debug_modal_panel.visible = false
+	for child in species_list_container.get_children():
+		child.queue_free()
+
+	var all_species = PoteDatabase.get_all_unique_species()
+	var stages = [
+		{"stage": PoteEnums.GrowthStage.EGG, "title": "🥚 タマゴ (EGG / 4種)"},
+		{"stage": PoteEnums.GrowthStage.BABY, "title": "🐣 幼年期 (BABY / 4種)"},
+		{"stage": PoteEnums.GrowthStage.CHILD, "title": "🦖 成長期 (CHILD / 4種)"},
+		{"stage": PoteEnums.GrowthStage.ADULT, "title": "🔥 成熟期 (ADULT / 4種)"},
+		{"stage": PoteEnums.GrowthStage.MASTER, "title": "👑 究極体 (MASTER / 4種)"}
+	]
+
+	var first_btn: Button = null
+
+	for st_info in stages:
+		var st_enum = st_info["stage"]
+		var st_title = st_info["title"]
+
+		var header_label = Label.new()
+		header_label.text = st_title
+		header_label.add_theme_font_size_override("font_size", 14)
+		header_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4, 1.0))
+		species_list_container.add_child(header_label)
+
+		var grid = GridContainer.new()
+		grid.columns = 2
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 6)
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+		for sp in all_species:
+			if sp.stage == st_enum:
+				var btn = Button.new()
+				btn.custom_minimum_size = Vector2(0, 46)
+				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				var attr_str = PoteSpeciesData.AttributeType.keys()[sp.attribute]
+				btn.text = "%s\n[%s]" % [sp.name, attr_str]
+				btn.add_theme_font_size_override("font_size", 12)
+				if _focus_box_style:
+					btn.add_theme_stylebox_override("focus", _focus_box_style)
+				var sp_id = sp.id
+				btn.pressed.connect(func(): _on_species_selected(sp_id))
+				grid.add_child(btn)
+				if first_btn == null:
+					first_btn = btn
+
+		species_list_container.add_child(grid)
+
+	species_select_modal_panel.visible = true
+	if first_btn:
+		first_btn.grab_focus()
+
+
+func _on_species_selected(species_id: String) -> void:
+	species_select_modal_panel.visible = false
+	PoteState.set_species_direct(species_id)
+	_update_ui_labels()
+	_update_lcd_species()
+	_update_battle_ui()
+	_update_debug_stats_text()
+	_open_debug_modal()
+
+
+func _on_btn_close_species_select_pressed() -> void:
+	species_select_modal_panel.visible = false
+	_open_debug_modal()
+
+
+func _on_btn_dbg_random_species_pressed() -> void:
+	var all_sp = PoteDatabase.get_all_unique_species()
+	if all_sp.is_empty():
+		return
+	var rand_sp = all_sp.pick_random()
+	_on_species_selected(rand_sp.id)
