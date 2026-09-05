@@ -1,0 +1,651 @@
+[gd_scene load_steps=4 format=3 uid="uid://c3v4kqygjh7mp"]
+
+[ext_resource type="Script" path="res://scripts/ui/DebugPoteView.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/PoteLcdDisplay.tscn" id="2_lcd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.07, 0.09, 0.14, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.6, 0.9, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 8
+
+[node name="DebugPoteView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.09, 0.12, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelPoteName" type="Label" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "相棒: ポテまる 【ポテタマ】"
+
+[node name="LabelStage" type="Label" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+text = "[EGG / BRAWLER]"
+
+[node name="BtnOpenCryo" type="Button" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.7, 0.9, 1, 1)
+text = "❄️ 凍結ポッド"
+
+[node name="TimePanel" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Margin/VBox/TimePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="Margin/VBox/TimePanel/Margin"]
+layout_mode = 2
+
+[node name="LabelSpeed" type="Label" parent="Margin/VBox/TimePanel/Margin/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+text = "▶ 通常速度 (1.0s/tick)"
+
+[node name="LabelTick" type="Label" parent="Margin/VBox/TimePanel/Margin/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+text = "Tick: 0"
+
+[node name="LcdContainer" type="CenterContainer" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PoteLcdDisplay" parent="Margin/VBox/LcdContainer" instance=ExtResource("2_lcd")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LabelStatus" type="Label" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.9, 0.9, 0.5, 1)
+horizontal_alignment = 1
+text = "すべての原点となる基本タマゴ。"
+
+[node name="DialogueBox" type="PanelContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Margin/VBox/DialogueBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 6
+
+[node name="LabelDialogue" type="Label" parent="Margin/VBox/DialogueBox/Margin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 2
+text = "「……（中から微かな鼓動が聞こえる）」"
+
+[node name="StatsGrid" type="GridContainer" parent="Margin/VBox"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 4
+
+[node name="LabelBelly" type="Label" parent="Margin/VBox/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "満腹度 (Belly):"
+
+[node name="BarBelly" type="ProgressBar" parent="Margin/VBox/StatsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 80.0
+
+[node name="LabelStamina" type="Label" parent="Margin/VBox/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "スタミナ (Stamina):"
+
+[node name="BarStamina" type="ProgressBar" parent="Margin/VBox/StatsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_horizontal = 3
+[node name="LabelBattleStats" type="Label" parent="Margin/VBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.85, 0.5, 1)
+text = "⚔️ 実戦: 0戦 0勝 (勝率 0%)"
+
+[node name="LabelTrainingStats" type="Label" parent="Margin/VBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
+text = "🏋️ 特訓: 0回"
+
+[node name="ActionButtons" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BtnFeedMenu" type="Button" parent="Margin/VBox/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "🍖 食事"
+
+[node name="BtnTrainMenu" type="Button" parent="Margin/VBox/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "💪 鍛錬"
+
+[node name="BtnToilet" type="Button" parent="Margin/VBox/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "🚽 トイレ"
+
+[node name="BtnRest" type="Button" parent="Margin/VBox/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "💤 睡眠"
+
+[node name="FooterHelp" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+horizontal_alignment = 1
+text = "[十字キー: 選択 / A: 決定 / B: 戻る / R2長押し: 早送り (20倍速)]"
+
+[node name="AlertPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -60.0
+offset_right = 220.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="AlertPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="LabelAlert" type="Label" parent="AlertPanel/Margin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+horizontal_alignment = 1
+text = "⚠ EMERGENCY STOP ⚠"
+
+[node name="FeedPopupPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -90.0
+offset_right = 180.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="FeedPopupPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="FeedPopupPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="FeedPopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
+horizontal_alignment = 1
+text = "🍖 食事メニュー選択"
+
+[node name="HBox" type="HBoxContainer" parent="FeedPopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnMeatAction" type="Button" parent="FeedPopupPanel/Margin/VBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "🍖 肉を食う\n[満腹大回復]"
+
+[node name="BtnProteinAction" type="Button" parent="FeedPopupPanel/Margin/VBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "💊 プロテイン\n[筋力/スタミナ]"
+
+[node name="BtnCloseFeed" type="Button" parent="FeedPopupPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "キャンセル"
+
+[node name="TrainPopupPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -190.0
+offset_top = -100.0
+offset_right = 190.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="TrainPopupPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="TrainPopupPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="TrainPopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
+horizontal_alignment = 1
+text = "💪 鍛錬メニュー選択"
+
+[node name="HBox" type="HBoxContainer" parent="TrainPopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnTrainingAction" type="Button" parent="TrainPopupPanel/Margin/VBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "🏋️ 特訓\n[筋力UP/疲労]"
+
+[node name="BtnBattleAction" type="Button" parent="TrainPopupPanel/Margin/VBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "⚔️ 実戦バトル\n[勝敗/勝率記録]"
+
+[node name="BtnCloseTrain" type="Button" parent="TrainPopupPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "キャンセル"
+
+[node name="EggSelectModalPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="EggSelectModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="EggSelectModalPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="EggSelectModalPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="EggSelectModalPanel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
+text = "🥚 育てるタマゴを選択してください"
+
+[node name="BtnCloseEggSelect" type="Button" parent="EggSelectModalPanel/Margin/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "❌ 閉じる"
+
+[node name="EggListContainer" type="VBoxContainer" parent="EggSelectModalPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="CryoModalPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="CryoModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="CryoModalPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="CryoModalPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CryoModalPanel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.6, 0.9, 1, 1)
+text = "❄️ 相棒コールドスリープ保管庫 (Cryo Pods)"
+
+[node name="BtnCloseCryo" type="Button" parent="CryoModalPanel/Margin/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "❌ 閉じる"
+
+[node name="Desc" type="Label" parent="CryoModalPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "現在の相棒を凍結保存して時間を止めたり、過去の相棒を解凍・復帰できます。"
+
+[node name="ScrollSlots" type="ScrollContainer" parent="CryoModalPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SlotListContainer" type="VBoxContainer" parent="CryoModalPanel/Margin/VBox/ScrollSlots"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="BottomActions" type="HBoxContainer" parent="CryoModalPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnFreezeCurrent" type="Button" parent="CryoModalPanel/Margin/VBox/BottomActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "❄️ 空きスロットに凍結保存"
+
+[node name="BtnFreezeAndEgg" type="Button" parent="CryoModalPanel/Margin/VBox/BottomActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🥚 凍結して新タマゴ育成"
+
+[node name="DebugModalPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="DebugModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="DebugModalPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="DebugModalPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="DebugModalPanel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
+text = "🔧 秘密の開発者デバッグインスペクター"
+
+[node name="BtnCloseDebug" type="Button" parent="DebugModalPanel/Margin/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "❌ 閉じる"
+
+[node name="ScrollStats" type="ScrollContainer" parent="DebugModalPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StatsBox" type="VBoxContainer" parent="DebugModalPanel/Margin/VBox/ScrollStats"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="LabelDebugStats" type="Label" parent="DebugModalPanel/Margin/VBox/ScrollStats/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+text = "【内部パラメータ読み込み中...】"
+
+[node name="CheatsTitle" type="Label" parent="DebugModalPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+text = "⚡ デバッグチート・テスト操作"
+
+[node name="CheatGrid" type="GridContainer" parent="DebugModalPanel/Margin/VBox"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+
+[node name="BtnDbgSkip50" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "⏩ +50 Tick 進める"
+
+[node name="BtnDbgForceEvolve" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🧬 強制進化 / 孵化"
+
+[node name="BtnDbgFullHeal" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🍖 満腹・スタミナ全回復"
+
+[node name="BtnDbgTriggerToilet" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🚽 便意MAX (緊急テスト)"
+
+[node name="BtnDbgAddWins" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "⚔️ 実戦勝利+3 (勝率UP)"
+
+[node name="BtnDbgResetEgg" type="Button" parent="DebugModalPanel/Margin/VBox/CheatGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🥚 タマゴへ初期化"
+
+[connection signal="pressed" from="Margin/VBox/Header/BtnOpenCryo" to="." method="_on_btn_open_cryo_pressed"]
+[connection signal="pressed" from="Margin/VBox/ActionButtons/BtnFeedMenu" to="." method="_on_btn_feed_menu_pressed"]
+[connection signal="pressed" from="Margin/VBox/ActionButtons/BtnTrainMenu" to="." method="_on_btn_train_menu_pressed"]
+[connection signal="pressed" from="Margin/VBox/ActionButtons/BtnToilet" to="." method="_on_btn_toilet_pressed"]
+[connection signal="pressed" from="Margin/VBox/ActionButtons/BtnRest" to="." method="_on_btn_rest_pressed"]
+[connection signal="pressed" from="FeedPopupPanel/Margin/VBox/HBox/BtnMeatAction" to="." method="_on_btn_meat_action_pressed"]
+[connection signal="pressed" from="FeedPopupPanel/Margin/VBox/HBox/BtnProteinAction" to="." method="_on_btn_protein_action_pressed"]
+[connection signal="pressed" from="FeedPopupPanel/Margin/VBox/BtnCloseFeed" to="." method="_on_btn_close_feed_pressed"]
+[connection signal="pressed" from="TrainPopupPanel/Margin/VBox/HBox/BtnTrainingAction" to="." method="_on_btn_training_action_pressed"]
+[connection signal="pressed" from="TrainPopupPanel/Margin/VBox/HBox/BtnBattleAction" to="." method="_on_btn_battle_action_pressed"]
+[connection signal="pressed" from="TrainPopupPanel/Margin/VBox/BtnCloseTrain" to="." method="_on_btn_close_train_pressed"]
+[connection signal="pressed" from="EggSelectModalPanel/Margin/VBox/Header/BtnCloseEggSelect" to="." method="_on_btn_close_egg_select_pressed"]
+[connection signal="pressed" from="CryoModalPanel/Margin/VBox/Header/BtnCloseCryo" to="." method="_on_btn_close_cryo_pressed"]
+[connection signal="pressed" from="CryoModalPanel/Margin/VBox/BottomActions/BtnFreezeCurrent" to="." method="_on_btn_freeze_current_pressed"]
+[connection signal="pressed" from="CryoModalPanel/Margin/VBox/BottomActions/BtnFreezeAndEgg" to="." method="_on_btn_freeze_and_egg_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/Header/BtnCloseDebug" to="." method="_on_btn_close_debug_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgSkip50" to="." method="_on_btn_dbg_skip50_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgForceEvolve" to="." method="_on_btn_dbg_force_evolve_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgFullHeal" to="." method="_on_btn_dbg_full_heal_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgTriggerToilet" to="." method="_on_btn_dbg_trigger_toilet_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgAddWins" to="." method="_on_btn_dbg_add_wins_pressed"]
+[connection signal="pressed" from="DebugModalPanel/Margin/VBox/CheatGrid/BtnDbgResetEgg" to="." method="_on_btn_dbg_reset_egg_pressed"]

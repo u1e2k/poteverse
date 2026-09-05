@@ -1,0 +1,48 @@
+# Godot 4.x specific ignores
+.godot/
+*.translation
+
+# Build & Export Artifacts
+build/
+bin/
+obj/
+*.apk
+*.aab
+*.package
+*.zip
+*.pck
+
+# Keystore & Signing Secrets
+*.keystore
+*.jks
+
+# Android Build & Gradle Cache
+android/build/
+android/.gradle/
+.gradle/
+
+# Mono / C# (将来的なC#モジュール追加時用)
+.mono/
+[Bb]in/
+[Oo]bj/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# IDE & Editor specific
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Crash logs & Dumps
+crash_*.log
+*.dump

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect width="128" height="128" rx="28" fill="#12181f" stroke="#33ff88" stroke-width="4"/>
+  <rect x="20" y="20" width="88" height="68" rx="8" fill="#8b956d" stroke="#1b2416" stroke-width="3"/>
+  <!-- Pote Face Profile Matrix in LCD Green -->
+  <g fill="#1b2416">
+    <rect x="42" y="32" width="12" height="6"/>
+    <rect x="40" y="38" width="20" height="8"/>
+    <rect x="36" y="44" width="28" height="6"/>
+    <rect x="36" y="50" width="36" height="8"/>
+    <rect x="34" y="58" width="40" height="14"/>
+    <rect x="44" y="72" width="8" height="8"/>
+    <rect x="60" y="72" width="8" height="8"/>
+    <!-- Eye cutout -->
+    <rect x="58" y="48" width="4" height="4" fill="#8b956d"/>
+  </g>
+  <!-- Buttons -->
+  <circle cx="86" cy="104" r="7" fill="#33ff88"/>
+  <circle cx="104" cy="104" r="7" fill="#33ff88"/>
+  <rect x="24" y="100" width="18" height="8" rx="2" fill="#33ff88"/>
+  <rect x="29" y="95" width="8" height="18" rx="2" fill="#33ff88"/>
+</svg>
