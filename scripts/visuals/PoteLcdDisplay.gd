@@ -33,7 +33,9 @@ var current_food_type: String = ""
 var food_target_x_offset: float = 0.0
 var eat_bites_count: int = 0
 var battle_won: bool = false
+var current_bg_type: String = ""
 
+@onready var texture_background: TextureRect = $LcdViewport/TextureBackground
 @onready var texture_pote: TextureRect = $LcdViewport/CharacterContainer/TexturePote
 @onready var texture_food: TextureRect = $LcdViewport/FoodLayer/TextureFood
 @onready var texture_poop: TextureRect = $LcdViewport/PoopLayer/TexturePoop
@@ -44,6 +46,8 @@ var battle_won: bool = false
 
 
 func _ready() -> void:
+	if texture_background:
+		texture_background.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	texture_pote.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	texture_food.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	texture_poop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -56,6 +60,7 @@ func _ready() -> void:
 	texture_poop.texture = PotePixelArt.create_item_texture("poop", lcd_fg_color)
 	texture_happy.texture = PotePixelArt.create_item_texture("happy_note", lcd_fg_color)
 
+	_update_background()
 	_update_pote_texture()
 	_update_pote_scale()
 
@@ -212,8 +217,24 @@ func _update_pote_scale() -> void:
 func set_species(species_id: String) -> void:
 	current_species_id = species_id
 	current_frame_index = 0
+	_update_background()
 	_update_pote_texture()
 	_update_pote_scale()
+
+
+func set_background(bg_type: String) -> void:
+	current_bg_type = bg_type
+	if texture_background:
+		texture_background.texture = PotePixelArt.create_lcd_background(current_bg_type, lcd_bg_color, lcd_fg_color)
+
+
+func _update_background() -> void:
+	if texture_background == null:
+		return
+	var target_bg = PotePixelArt.get_background_for_species(current_species_id)
+	if target_bg != current_bg_type or texture_background.texture == null:
+		current_bg_type = target_bg
+		texture_background.texture = PotePixelArt.create_lcd_background(current_bg_type, lcd_bg_color, lcd_fg_color)
 
 
 func start_feeding(food_type: String) -> void:

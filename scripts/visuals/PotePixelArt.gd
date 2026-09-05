@@ -531,3 +531,342 @@ static func _get_pattern_for_species(species_id: String, frame_index: int, is_ea
 		"master_slime", "master_cosmic": return COSMIC_IDLE_F1 if f == 0 else COSMIC_IDLE_F2
 
 		_: return BABY_DRAK_F1 if f == 0 else BABY_DRAK_F2
+
+
+# ==============================================================================
+# 🏞️ レトロモノクロLCD背景グラフィック生成
+# ==============================================================================
+static func get_background_for_species(species_id: String) -> String:
+	if species_id.begins_with("egg_"):
+		return "cosmic_incubator"
+	if "drak" in species_id or "flame" in species_id or "wargod" in species_id:
+		return "volcano_crag"
+	if "byte" in species_id or "cyber" in species_id or "omega" in species_id:
+		return "cyber_grid"
+	if "fang" in species_id or "gale" in species_id or "fenrir" in species_id:
+		return "forest_plain"
+	if "slime" in species_id or "king_slime" in species_id or "cosmic" in species_id:
+		return "dojo_room"
+	return "dojo_room"
+
+
+static func create_lcd_background(bg_type: String, bg_color: Color = Color(0.608, 0.671, 0.541, 1.0), fg_color: Color = Color(0.12, 0.16, 0.12, 1.0)) -> ImageTexture:
+	var w: int = 140
+	var h: int = 78
+	var img = Image.create(w, h, false, Image.FORMAT_RGBA8)
+	img.fill(bg_color)
+
+	var faint_col = bg_color.lerp(fg_color, 0.14)  # 遠景・雲・かすかな質感
+	var mid_col   = bg_color.lerp(fg_color, 0.28)  # 中景・壁線・山並み・床板
+	var accent_col= bg_color.lerp(fg_color, 0.46)  # 地平線・建造物輪郭・窓枠
+
+	match bg_type:
+		"cyber_grid":
+			_render_bg_cyber_grid(img, w, h, faint_col, mid_col, accent_col)
+		"dojo_room":
+			_render_bg_dojo_room(img, w, h, faint_col, mid_col, accent_col)
+		"volcano_crag":
+			_render_bg_volcano_crag(img, w, h, faint_col, mid_col, accent_col)
+		"forest_plain":
+			_render_bg_forest_plain(img, w, h, faint_col, mid_col, accent_col)
+		"cosmic_incubator":
+			_render_bg_cosmic_incubator(img, w, h, faint_col, mid_col, accent_col)
+		_:
+			_render_bg_dojo_room(img, w, h, faint_col, mid_col, accent_col)
+
+	return ImageTexture.create_from_image(img)
+
+
+# 1. 電脳グリッド / サイバーアリーナ
+static func _render_bg_cyber_grid(img: Image, w: int, h: int, faint: Color, mid: Color, accent: Color) -> void:
+	var horizon_y = 54
+
+	# 遠景電脳ビル街 (スカイライン)
+	var buildings = [
+		{"x": 6, "w": 10, "h": 22, "ant": true},
+		{"x": 20, "w": 14, "h": 30, "ant": false},
+		{"x": 38, "w": 12, "h": 18, "ant": true},
+		{"x": 54, "w": 18, "h": 36, "ant": true},
+		{"x": 76, "w": 14, "h": 26, "ant": false},
+		{"x": 94, "w": 12, "h": 20, "ant": true},
+		{"x": 110, "w": 16, "h": 32, "ant": false},
+		{"x": 128, "w": 8, "h": 16, "ant": true}
+	]
+	for b in buildings:
+		var bx: int = b.x
+		var bw: int = b.w
+		var bh: int = b.h
+		var by: int = horizon_y - bh
+		for x in range(bx, mini(w, bx + bw)):
+			for y in range(by, horizon_y):
+				# ビルの外枠と窓ドット
+				if x == bx or x == bx + bw - 1 or y == by:
+					img.set_pixel(x, y, mid)
+				elif (x - bx) % 3 == 1 and (y - by) % 4 == 2:
+					img.set_pixel(x, y, faint)
+		if b.ant:
+			var ant_x = bx + int(bw / 2)
+			for ay in range(by - 5, by):
+				if ay >= 0:
+					img.set_pixel(ant_x, ay, mid)
+
+	# データストリーム / ビット浮遊
+	var bits = [Vector2i(14, 8), Vector2i(48, 12), Vector2i(70, 6), Vector2i(105, 10), Vector2i(125, 14)]
+	for pt in bits:
+		if pt.x < w and pt.y < h:
+			img.set_pixel(pt.x, pt.y, faint)
+			img.set_pixel(pt.x + 1, pt.y, faint)
+
+	# 地平線
+	for x in range(w):
+		img.set_pixel(x, horizon_y, accent)
+
+	# パースグリッド床 (奥行き)
+	var floor_lines = [56, 60, 66, 73, 77]
+	for fy in floor_lines:
+		for x in range(w):
+			if (fy == 77 or (x % 2 == 0)):
+				img.set_pixel(x, fy, mid)
+
+	# 遠近グリッド縦線 (消失点: 70, 54)
+	var cx = 70.0
+	for angle_idx in range(-5, 6):
+		var target_bottom_x = cx + angle_idx * 15.0
+		for y in range(horizon_y + 1, h):
+			var t = float(y - horizon_y) / float(h - horizon_y)
+			var cur_x = int(lerpf(cx + angle_idx * 3.0, target_bottom_x, t))
+			if cur_x >= 0 and cur_x < w:
+				img.set_pixel(cur_x, y, faint)
+
+
+# 2. 特訓道場 / ポテの部屋
+static func _render_bg_dojo_room(img: Image, w: int, h: int, faint: Color, mid: Color, accent: Color) -> void:
+	var floor_y = 55
+
+	# 柱・壁のパネル区切り
+	for col_x in [0, 35, 70, 105, 139]:
+		for y in range(floor_y):
+			img.set_pixel(col_x, y, mid)
+
+	# 丸窓 (x: 88..122, y: 12..40)
+	var win_cx = 105
+	var win_cy = 24
+	var win_r = 13
+	for y in range(win_cy - win_r, win_cy + win_r + 1):
+		for x in range(win_cx - win_r, win_cx + win_r + 1):
+			var dist_sq = (x - win_cx) * (x - win_cx) + (y - win_cy) * (y - win_cy)
+			if dist_sq <= win_r * win_r and dist_sq >= (win_r - 1) * (win_r - 1):
+				img.set_pixel(x, y, accent)
+			elif dist_sq < (win_r - 1) * (win_r - 1):
+				# 窓の外の風景（山並みと小太陽）
+				if y == win_cy or x == win_cx:
+					img.set_pixel(x, y, mid) # 格子
+				elif y > win_cy + 4:
+					img.set_pixel(x, y, faint) # 遠山
+
+	# 壁掛け掛け軸 (x: 14..28, y: 12..42)
+	for y in range(12, 43):
+		for x in range(14, 29):
+			if x == 14 or x == 28 or y == 12 or y == 42 or y == 16 or y == 38:
+				img.set_pixel(x, y, accent)
+			elif x in [20, 21, 22] and y in [22, 23, 24, 28, 29, 30]:
+				img.set_pixel(x, y, mid) # 漢字風の筆跡
+
+	# 壁の飾り棚 (x: 42..65, y: 30..31)
+	for x in range(42, 66):
+		img.set_pixel(x, 30, accent)
+		img.set_pixel(x, 31, mid)
+	# 棚の上のダンベル＆ミニトロフィー
+	img.set_pixel(46, 28, accent); img.set_pixel(46, 29, accent); img.set_pixel(48, 28, accent); img.set_pixel(48, 29, accent); img.set_pixel(47, 29, accent)
+	img.set_pixel(58, 27, mid); img.set_pixel(59, 27, mid); img.set_pixel(57, 28, mid); img.set_pixel(60, 28, mid); img.set_pixel(58, 29, accent); img.set_pixel(59, 29, accent)
+
+	# 巾木・床の境界
+	for x in range(w):
+		img.set_pixel(x, floor_y - 1, mid)
+		img.set_pixel(x, floor_y, accent)
+
+	# フローリング・畳の横線
+	var planks = [60, 66, 72, 77]
+	for py in planks:
+		for x in range(w):
+			img.set_pixel(x, py, mid)
+	# 木目の縦継ぎ目
+	for sx in [18, 52, 88, 124]:
+		for y in range(floor_y + 1, 60): img.set_pixel(sx, y, faint)
+	for sx in [35, 70, 105]:
+		for y in range(61, 66): img.set_pixel(sx, y, faint)
+	for sx in [15, 48, 92, 130]:
+		for y in range(67, 72): img.set_pixel(sx, y, faint)
+
+
+# 3. 竜の火山 / 溶岩荒野
+static func _render_bg_volcano_crag(img: Image, w: int, h: int, faint: Color, mid: Color, accent: Color) -> void:
+	var ground_y = 54
+
+	# 太陽 / 月
+	for dy in range(-4, 5):
+		for dx in range(-4, 5):
+			if dx * dx + dy * dy <= 16:
+				img.set_pixel(22 + dx, 16 + dy, faint)
+
+	# 火山スカイライン (x: 40..100)
+	for x in range(w):
+		var mountain_h = 0
+		if x >= 30 and x <= 110:
+			var center_dist = absf(x - 70)
+			mountain_h = int(clampf(34.0 - center_dist * 0.75, 0.0, 32.0))
+			if center_dist < 6: # 火口凹み
+				mountain_h -= 4
+		elif x < 30:
+			mountain_h = int(clampf(14.0 - x * 0.3, 0.0, 14.0))
+		else:
+			mountain_h = int(clampf(14.0 - (w - x) * 0.3, 0.0, 14.0))
+
+		var my = ground_y - mountain_h
+		for y in range(my, ground_y):
+			if y == my:
+				img.set_pixel(x, y, accent)
+			elif y % 3 == 0 and x % 3 == 0:
+				img.set_pixel(x, y, mid)
+
+	# 噴煙の煙雲
+	var smokes = [Vector2i(68, 16), Vector2i(72, 14), Vector2i(70, 10), Vector2i(76, 8)]
+	for s in smokes:
+		for dy in range(-2, 3):
+			for dx in range(-3, 4):
+				if dx*dx + dy*dy <= 6 and s.x+dx < w and s.y+dy >= 0:
+					img.set_pixel(s.x+dx, s.y+dy, faint)
+
+	# 地表クラック・岩肌
+	for x in range(w):
+		img.set_pixel(x, ground_y, accent)
+
+	# 溶岩亀裂
+	var crack_pts = [
+		Vector2i(10, 56), Vector2i(18, 62), Vector2i(26, 68), Vector2i(38, 76),
+		Vector2i(90, 56), Vector2i(98, 64), Vector2i(112, 72), Vector2i(126, 76),
+		Vector2i(60, 60), Vector2i(75, 68), Vector2i(85, 74)
+	]
+	for i in range(crack_pts.size() - 1):
+		var p1 = crack_pts[i]
+		var p2 = crack_pts[i+1]
+		if abs(p1.x - p2.x) < 25:
+			for step in range(12):
+				var px = int(lerpf(p1.x, p2.x, step / 12.0))
+				var py = int(lerpf(p1.y, p2.y, step / 12.0))
+				if px < w and py < h:
+					img.set_pixel(px, py, mid)
+
+
+# 4. デジタル樹海 / 草原フィールド
+static func _render_bg_forest_plain(img: Image, w: int, h: int, faint: Color, mid: Color, accent: Color) -> void:
+	var ground_y = 54
+
+	# 雲
+	var clouds = [Vector2i(20, 12), Vector2i(75, 8), Vector2i(115, 14)]
+	for c in clouds:
+		for dx in range(-8, 9):
+			for dy in range(-3, 4):
+				if (dx * dx) / 64.0 + (dy * dy) / 9.0 <= 1.0:
+					var px = c.x + dx
+					var py = c.y + dy
+					if px >= 0 and px < w and py >= 0 and py < h:
+						img.set_pixel(px, py, faint)
+
+	# 飛ぶ鳥 (V字)
+	for bx in [45, 52]:
+		img.set_pixel(bx - 1, 18, mid); img.set_pixel(bx, 19, mid); img.set_pixel(bx + 1, 18, mid)
+
+	# 遠景山並み
+	for x in range(w):
+		var my = ground_y - int(sin(x * 0.05) * 8.0 + 12.0)
+		img.set_pixel(x, my, faint)
+
+	# 両端のデジタル樹木 (左: 0..25, 右: 115..139)
+	var trees = [
+		{"x": 6, "y": 30, "w": 12, "h": 24},
+		{"x": 18, "y": 36, "w": 10, "h": 18},
+		{"x": 118, "y": 34, "w": 10, "h": 20},
+		{"x": 128, "y": 28, "w": 12, "h": 26}
+	]
+	for t in trees:
+		# 幹
+		for y in range(t.y + 10, ground_y):
+			img.set_pixel(t.x + int(t.w/2), y, mid)
+		# 樹冠
+		for cy in range(t.y, t.y + 12):
+			for cx in range(t.x, t.x + t.w):
+				var r = (t.w / 2.0)
+				var d = absf(cx - (t.x + r))
+				if d <= r:
+					if cx == t.x or cx == t.x + t.w - 1 or cy == t.y:
+						img.set_pixel(cx, cy, accent)
+					else:
+						img.set_pixel(cx, cy, mid)
+
+	# 地平草むら線
+	for x in range(w):
+		img.set_pixel(x, ground_y, accent)
+		if x % 4 == 0:
+			img.set_pixel(x, ground_y - 1, mid) # 草の穂
+
+	# 草原の草花ドット
+	var plants = [Vector2i(12, 60), Vector2i(34, 66), Vector2i(58, 62), Vector2i(82, 70), Vector2i(105, 64), Vector2i(128, 68)]
+	for p in plants:
+		if p.x < w and p.y < h:
+			img.set_pixel(p.x, p.y, mid)
+			img.set_pixel(p.x - 1, p.y + 1, faint)
+			img.set_pixel(p.x + 1, p.y + 1, faint)
+
+
+# 5. タマゴ培養室 / コールドスリープカプセル空間
+static func _render_bg_cosmic_incubator(img: Image, w: int, h: int, faint: Color, mid: Color, accent: Color) -> void:
+	var floor_y = 54
+
+	# 両端のカプセルシリンダー枠
+	for x in range(12):
+		for y in range(h):
+			if x == 11 or y == 4 or y == h - 4:
+				img.set_pixel(x, y, accent)
+			elif x % 3 == 0:
+				img.set_pixel(x, y, mid)
+	for x in range(w - 12, w):
+		for y in range(h):
+			if x == w - 12 or y == 4 or y == h - 4:
+				img.set_pixel(x, y, accent)
+			elif (w - 1 - x) % 3 == 0:
+				img.set_pixel(x, y, mid)
+
+	# 天井のサイバーライト
+	for lx in [25, 45, 65, 85, 105]:
+		for y in range(2, 6):
+			img.set_pixel(lx, y, accent)
+			img.set_pixel(lx + 1, y, accent)
+
+	# 中央壁面のバイタル・心電図パルス波形モニター (y: 26..32)
+	for x in range(16, w - 16):
+		img.set_pixel(x, 30, faint)
+	# パルス山谷
+	var pulse_coords = [
+		Vector2i(50, 30), Vector2i(54, 28), Vector2i(56, 33), Vector2i(58, 25), Vector2i(60, 34), Vector2i(62, 30),
+		Vector2i(80, 30), Vector2i(84, 28), Vector2i(86, 33), Vector2i(88, 25), Vector2i(90, 34), Vector2i(92, 30)
+	]
+	for pt in pulse_coords:
+		img.set_pixel(pt.x, pt.y, mid)
+
+	# 台座プラットフォーム (x: 35..105, y: 54..72)
+	for x in range(w):
+		img.set_pixel(x, floor_y, mid)
+
+	# 八角形ポッド台座
+	for x in range(35, 106):
+		img.set_pixel(x, floor_y + 2, accent)
+		img.set_pixel(x, floor_y + 16, accent)
+	for y in range(floor_y + 2, floor_y + 17):
+		img.set_pixel(35, y, accent)
+		img.set_pixel(105, y, accent)
+		if y % 4 == 0:
+			for x in range(36, 105):
+				if (x + y) % 6 == 0:
+					img.set_pixel(x, y, faint)
+
