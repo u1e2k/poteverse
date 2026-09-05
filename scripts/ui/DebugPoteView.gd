@@ -79,6 +79,7 @@ func _ready() -> void:
 	PoteState.buddy_dialogue_emitted.connect(_on_buddy_dialogue)
 	PoteState.stage_evolved.connect(_on_stage_evolved)
 	PoteState.poop_spawned_on_floor.connect(_on_poop_spawned)
+	PoteState.state_loaded.connect(_on_state_loaded)
 
 	if PoteCryoStorage:
 		PoteCryoStorage.storage_updated.connect(_refresh_cryo_slots)
@@ -318,6 +319,12 @@ func _on_stats_updated(belly: float, toilet: float, stamina: float, buddy_sync: 
 
 func _on_buddy_dialogue(speaker: String, text: String, mood: PoteEnums.BuddyMood) -> void:
 	label_dialogue.text = "「%s」" % text
+
+
+func _on_state_loaded() -> void:
+	_update_ui_labels()
+	_update_lcd_species()
+	_update_battle_ui()
 
 
 func _on_stage_evolved(prev_species: PoteSpeciesData, new_species: PoteSpeciesData) -> void:

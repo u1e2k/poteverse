@@ -7,6 +7,10 @@ signal battle_finished(won: bool, enemy_name: String, message: String)
 signal buddy_dialogue_emitted(speaker: String, text: String, mood: PoteEnums.BuddyMood)
 signal stage_evolved(previous_species: PoteSpeciesData, new_species: PoteSpeciesData)
 signal poop_spawned_on_floor()
+signal state_saved()
+signal state_loaded()
+
+const SAVE_FILE_PATH: String = "user://active_pote.json"
 
 ## 相棒ポテの基本情報 & 種族データ
 @export var buddy_name: String = "ポテまる"
@@ -46,21 +50,29 @@ const STAMINA_DECAY_PER_TICK: float = 0.10
 
 
 func _ready() -> void:
-	if PoteDatabase:
-		current_species = PoteDatabase.get_species(current_species_id)
-	
-	if current_species == null:
-		var db = get_node_or_null("/root/PoteDatabase")
-		if db:
-			current_species = db.get_species(current_species_id)
+	# 起動時の自動ロード
+	var loaded = load_active_pote()
+	if not loaded:
+		if PoteDatabase:
+			current_species = PoteDatabase.get_species(current_species_id)
+		if current_species == null:
+			var db = get_node_or_null("/root/PoteDatabase")
+			if db:
+				current_species = db.get_species(current_species_id)
 
 	if Engine.has_singleton("PoteverseTimeManager") or get_node_or_null("/root/PoteverseTimeManager"):
 		var time_mgr = get_node("/root/PoteverseTimeManager")
 		time_mgr.tick_advanced.connect(_on_tick_advanced)
 		var sp_name = current_species.name if current_species else "相棒"
-		print("[PoteState] PoteverseTimeManager 接続完了。相棒: %s (%s)" % [buddy_name, sp_name])
+		print("[PoteState] PoteverseTimeManager 接続完了。相棒: %s (%s) 総Tick:%d" % [buddy_name, sp_name, total_alive_ticks])
 
 	_emit_stats()
+
+
+func _notification(what: int) -> void:
+	# アプリ終了時・バックグラウンド移動時・フォーカス喪失時の自動セーブ
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_PREDELETE:
+		save_active_pote()
 
 
 func _on_tick_advanced(current_tick: int, is_fast_mode: bool) -> void:
@@ -75,6 +87,10 @@ func _on_tick_advanced(current_tick: int, is_fast_mode: bool) -> void:
 	_check_evolution_progression()
 	_evaluate_emergency_conditions()
 	_emit_stats()
+
+	# 10 Tickごとに定期自動保存
+	if current_tick % 10 == 0:
+		save_active_pote()
 
 
 func _process_living_tick() -> void:
@@ -178,6 +194,7 @@ func feed_meat(food_power: float = 35.0) -> void:
 		line = current_species.dialogue_feed
 	buddy_dialogue_emitted.emit(buddy_name, line, mood)
 	_emit_stats()
+	save_active_pote()
 
 
 ## 💊 プロテインを与える
@@ -195,6 +212,7 @@ func feed_protein(stamina_power: float = 30.0) -> void:
 	var line = "プロテイン補給完了！筋肉がキレてるぜ相棒！いくぞォォッ！"
 	buddy_dialogue_emitted.emit(buddy_name, line, mood)
 	_emit_stats()
+	save_active_pote()
 
 
 ## 🏋️ トレーニング（サンドバッグ打ち）
@@ -214,6 +232,7 @@ func execute_training() -> void:
 	mood = PoteEnums.BuddyMood.HYPED
 	buddy_dialogue_emitted.emit(buddy_name, "オラオラァ！いい汗かいたぜ！筋肉が唸ってる！", mood)
 	_emit_stats()
+	save_active_pote()
 
 
 ## ⚔️ 実戦バトル（スパーリング）
@@ -256,6 +275,7 @@ func execute_battle() -> Dictionary:
 	battle_finished.emit(won, enemy, msg)
 	buddy_dialogue_emitted.emit(buddy_name, msg, mood)
 	_emit_stats()
+	save_active_pote()
 	return {"success": true, "won": won, "enemy": enemy, "msg": msg}
 
 
@@ -274,6 +294,7 @@ func send_to_toilet() -> void:
 	else:
 		buddy_dialogue_emitted.emit(buddy_name, "ん？今はまだ出ねぇぜ！", PoteEnums.BuddyMood.NORMAL)
 	_emit_stats()
+	save_active_pote()
 
 
 ## 💤 睡眠
@@ -287,6 +308,7 @@ func rest_buddy(rest_amount: float = 60.0) -> void:
 	mood = PoteEnums.BuddyMood.NORMAL
 	buddy_dialogue_emitted.emit(buddy_name, "ふぁ〜…ぐっすり寝て全快だぜ！今日もバリバリ行こう！", mood)
 	_emit_stats()
+	save_active_pote()
 
 
 ## 【勝率・戦績・条件分岐進化ロジック】
@@ -342,6 +364,7 @@ func evolve_to_next_stage() -> void:
 	var evolve_line = current_species.dialogue_evolve if current_species else "オレの新形態だぜ！"
 	buddy_dialogue_emitted.emit(buddy_name, evolve_line, mood)
 	_emit_stats()
+	save_active_pote()
 
 
 func _emit_stats() -> void:
@@ -398,6 +421,7 @@ func import_state_dict(data: Dictionary) -> void:
 	stage_evolved.emit(null, current_species)
 	buddy_dialogue_emitted.emit(buddy_name, "ふぁぁ…！コールドスリープから目覚めたぜ相棒！またよろしくな！", mood)
 	_emit_stats()
+	save_active_pote()
 
 
 func reset_to_new_egg(egg_species_id: String = "egg_drak", new_name: String = "ポテまる") -> void:
@@ -427,4 +451,90 @@ func reset_to_new_egg(egg_species_id: String = "egg_drak", new_name: String = "�
 
 	stage_evolved.emit(null, current_species)
 	buddy_dialogue_emitted.emit(buddy_name, "（温かいタマゴが静かに脈打っている…）", mood)
+	_emit_stats()
+	save_active_pote()
+
+
+# ==============================================================================
+# 💾 アクティブ相棒データの自動セーブ＆ロード
+# ==============================================================================
+func save_active_pote() -> bool:
+	var data = export_state_dict()
+	var time_mgr = get_node_or_null("/root/PoteverseTimeManager")
+	if time_mgr:
+		data["current_tick_count"] = time_mgr.current_tick_count
+	data["unix_time"] = Time.get_unix_time_from_system()
+
+	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
+	if file == null:
+		push_error("[PoteState] セーブファイル書き込み失敗: %s (Error: %d)" % [SAVE_FILE_PATH, FileAccess.get_open_error()])
+		return false
+
+	var json_str = JSON.stringify(data, "\t")
+	file.store_string(json_str)
+	file.close()
+	state_saved.emit()
+	return true
+
+
+func load_active_pote() -> bool:
+	if not FileAccess.file_exists(SAVE_FILE_PATH):
+		print("[PoteState] セーブデータ未検出。初期状態を作成します。")
+		return false
+
+	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
+	if file == null:
+		push_error("[PoteState] セーブファイル読み込み失敗: %s" % SAVE_FILE_PATH)
+		return false
+
+	var content = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var parse_result = json.parse(content)
+	if parse_result != OK:
+		push_error("[PoteState] JSONパース失敗: %s" % json.get_error_message())
+		return false
+
+	var data = json.data
+	if not (data is Dictionary):
+		push_error("[PoteState] 不正なセーブデータフォーマット")
+		return false
+
+	import_saved_state(data)
+	print("[PoteState] 📂 セーブデータロード成功: %s (%s) 総Tick:%d 世代Tick:%d" % [buddy_name, current_species_id, total_alive_ticks, current_stage_ticks])
+	state_loaded.emit()
+	return true
+
+
+func import_saved_state(data: Dictionary) -> void:
+	buddy_name = data.get("buddy_name", "ポテまる")
+	current_species_id = data.get("current_species_id", "egg_basic")
+	belly_fuel = float(data.get("belly_fuel", 80.0))
+	toilet_urgency = float(data.get("toilet_urgency", 10.0))
+	stamina = float(data.get("stamina", 90.0))
+	buddy_sync = float(data.get("buddy_sync", 60.0))
+	care_mistakes = int(data.get("care_mistakes", 0))
+	meat_feed_count = int(data.get("meat_feed_count", 0))
+	protein_feed_count = int(data.get("protein_feed_count", 0))
+	sleep_count = int(data.get("sleep_count", 0))
+	training_count = int(data.get("training_count", 0))
+	total_battles = int(data.get("total_battles", 0))
+	wins = int(data.get("wins", 0))
+	total_alive_ticks = int(data.get("total_alive_ticks", 0))
+	current_stage_ticks = int(data.get("current_stage_ticks", 0))
+	ticks_to_next_evolution = int(data.get("ticks_to_next_evolution", 50))
+
+	var time_mgr = get_node_or_null("/root/PoteverseTimeManager")
+	if time_mgr:
+		time_mgr.current_tick_count = int(data.get("current_tick_count", total_alive_ticks))
+
+	if PoteDatabase:
+		current_species = PoteDatabase.get_species(current_species_id)
+
+	if current_species and current_species.stage == PoteEnums.GrowthStage.EGG:
+		buddy_dialogue_emitted.emit(buddy_name, "（温かいタマゴが静かに脈打っている…）", PoteEnums.BuddyMood.NORMAL)
+	else:
+		buddy_dialogue_emitted.emit(buddy_name, "「相棒！戻ってきたな！待ってたぜ！」", PoteEnums.BuddyMood.HAPPY)
+
 	_emit_stats()
